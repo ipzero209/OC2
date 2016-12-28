@@ -31,3 +31,4 @@ def genInventory(ip, key):
     d = shelve.open(ip + '-' + 'data.db')
     d['inventory'] = dev_list
     print "New inventory generated and loaded"
+    return dev_list
