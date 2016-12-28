@@ -24,3 +24,10 @@ def genInventory(ip, key):
         ha_cmd = "https://" + ip + "/api/?type=op&cmd=<show><high-availability><state></state></high-availability></show>&target=" + this_dev + "&key=" + str(api_key)
         ha_resp = requests.get(ha_cmd, verify=False)
         ha_respXML = et.fromstring(ha_resp.content)
+        device.is_ha = ha_respXML.find('./result/enabled').text
+        if device.is_ha == 'yes':
+            device.ha_peer = ha_respXML.find('./result/group/peer-info/mgmt-ip').text
+            device.ha_state = ha_respXML.find('./result/group/local-info/state').text
+    d = shelve.open(ip + '-' + 'data.db')
+    d['inventory'] = dev_list
+    print "New inventory generated and loaded"
