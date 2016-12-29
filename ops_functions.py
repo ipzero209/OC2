@@ -1,7 +1,24 @@
 import xml.etree.ElementTree as et
 import requests
 import pfw
+import shelve
+import os
+import getpass
 
+
+def clearSubScreen():
+    """Used to clear the screen."""
+    os.system('cls' if os.name = 'nt' else 'clear')
+
+
+def getAPIKey(ip):
+    user = raw_input('Username: ')
+    passwd = getpass.getpass('Password: ')
+    key_req = "https://" + ip + "/api/?type=keygen&user=" + user + "&password=" + passwd
+    key_resp = requests.get(key_req, verify=False)
+    key_respXML = et.fromstring(key_resp.content)
+    key = key_respXML.find('./result/key').text
+    return key
 
 def genInventory(ip, key):
     """Generates a list of panfw devices based on Panorama's connected devices."""
@@ -28,7 +45,18 @@ def genInventory(ip, key):
         if device.is_ha == 'yes':
             device.ha_peer = ha_respXML.find('./result/group/peer-info/mgmt-ip').text
             device.ha_state = ha_respXML.find('./result/group/local-info/state').text
+        else:
+            device.ha_state = "Device not in HA."
     d = shelve.open(ip + '-' + 'data.db')
     d['inventory'] = dev_list
     print "New inventory generated and loaded"
     return dev_list
+
+def loadInventory(ip):
+    print "Loading inventory..."
+    d = shelve.open(ip + '-' + 'data.db')
+    dev_inv = d['inventory']
+    print "Inventory loaded."
+    clearSubScreen()
+    return dev_inv
+

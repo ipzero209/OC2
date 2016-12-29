@@ -1,4 +1,4 @@
-class Device:
+ class Device:
     """Devices are managed from Panorama and have the following attributes:
 
     ser_num: Serial number of the manaaged device.

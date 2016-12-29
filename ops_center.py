@@ -3,13 +3,30 @@
 import requests
 import os
 import sys
-import getpass
 import xml.etree.ElementTree as et
 from time import sleep
 import shelve
 import pfw
 import logging
 import ops_functions
+
+def clearMainScreen():
+    """Used to clear the screen"""
+    os.system('cls' if os.name = 'nt' else 'clear')
+
+def opsMenu(dev_list):
+    ops_menu_option = True
+    while ops_menu_option:
+    print """
+    1. List Devices
+    2. Print Inventory
+    3. Device Info
+    4. Download PAN-OS Version to device
+    5. Upgrade Device
+    6. Exit Ops Menu"""
+    menu_option = raw_input('What operation would you like to perform? ')
+
+
 
 
 
@@ -62,28 +79,27 @@ while menu_option:
     if menu_option == "1":
         device_list = ops_functions.genInventory(pano_IP, api_key)
         menu_option = True
-        clearScreen()
+        clearMainScreen()
     elif menu_option == "2":
-        clearScreen()
+        clearMainScreen()
         device_list = loadInventory()
         menu_option = True
     elif menu_option == "3":
-        api_key = getAPIKey(pano_IP)
+        api_key = ops_functions.getAPIKey(pano_IP)
         print "API key generated"
-        print api_key
         menu_option = True
-        clearScreen()
+        clearMainScreen()
     elif menu_option == "4":
         clearScreen()
         opMenu(device_list)
-        clearScreen()
+        clearMainScreen()
         menu_option = True
     elif menu_option == "5":
-        clearScreen()
+        clearMainScreen()
         exit()
     else:
         menu_option = True
-        clearScreen()
+        clearMainScreen()
 
 
 
