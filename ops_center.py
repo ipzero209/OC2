@@ -8,11 +8,17 @@ from time import sleep
 import shelve
 import pfw
 import logging
-import ops_functions
+import ops_functions as ops
 
-def clearMainScreen():
-    """Used to clear the screen"""
-    os.system('cls' if os.name = 'nt' else 'clear')
+
+
+
+
+###################################################################################
+##      Main Script Functions
+
+
+
 
 def opsMenu(dev_list):
     ops_menu_option = True
@@ -20,11 +26,37 @@ def opsMenu(dev_list):
     print """
     1. List Devices
     2. Print Inventory
-    3. Device Info
-    4. Download PAN-OS Version to device
-    5. Upgrade Device
-    6. Exit Ops Menu"""
+    3. Export Inventory
+    4. Device Info
+    5. Download PAN-OS Version to device
+    6. Upgrade Device
+    7. Exit Ops Menu"""
     menu_option = raw_input('What operation would you like to perform? ')
+    if menu_option == "1":
+        ops.clearScreen()
+        ops.listDevices(dev_list)
+        menu_option = True
+        ops.clearScreen()
+    elif menu_option == "2":
+        ops.clearScreen()
+        ops.printInventory(dev_list)
+        menu_option = True
+        ops.clearScreen()
+    elif menu_option == "3":
+        ops.exportInventory(dev_list, pano_IP)
+        menu_option = True
+        ops.clearScreen()
+    elif menu_option == "4":
+        ops.clearScreen()
+        dev = raw_input("Enter the hostname of the firewall you would like to see: ")
+        ops.printDevInfo(dev, dev_list)
+        ops.clearScreen()
+        menu_option = True
+    elif menu_option == "5":
+        dl_version = raw_input('What version of PAN-OS would you lime to Download (e.g. 7.1.4 or press I for more info): ')
+        dev = raw_input('Which device would you like to download to (enter hostname)? ')
+        downloadPANOS(ip, dev_host, dev_list, dl_version, api_key)
+
 
 
 
