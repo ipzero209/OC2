@@ -124,7 +124,7 @@ def printDevInfo(this_dev, dev_list):
     pause = raw_input('Press any key to continue')
     return
 
-# TODO: Handle response after job checker is complete \/
+
 
 def getPANOSVersion(ip, this_host, dev_list, version, key):
     target_devs = []
@@ -160,7 +160,7 @@ def getPANOSVersion(ip, this_host, dev_list, version, key):
     if job_result == 1:
         break
     for t_dev in target_devs:
-        up_str = "https://" + ip + "/api/?type=op&cmd=<request><batch><software><upload><file>" + target_ver + "/file><devices>" + t_dev.ser_num + "</devices></upload></software></batch></request>&key=" + api_key"
+        up_str = "https://" + ip + "/api/?type=op&cmd=<request><batch><software><upload><file>" + target_ver + "</file><devices>" + t_dev.ser_num + "</devices></upload></software></batch></request>&key=" + api_key
         up_resp = requests.get(up_str, verify=Flase)
         up_respXML = et.fromstring(up_resp.content)
         msg = up_respXML.find('./result/msg/line').text
@@ -170,9 +170,9 @@ def getPANOSVersion(ip, this_host, dev_list, version, key):
             logging.error('Issue uploading %s on %s: %s' % (version, this_host, msg))
         job_result = jobChecker(ip, jobID, key)
     if job_result == 1:
-        break
-
-
+        return
+    else:
+        return
 
 
 
@@ -206,6 +206,34 @@ def jobChecker(ip, id, key):
         logging.error('There was an issue with job %s on %s status is %s' %(id, ip, result))
         return 1
 
+def haStateCheck(dev, ip, key):
+    """Checks the HA state of the given firewall"""
+    check_str = "https://" + ip + "/api/?type=op&cmd=" + "<show><high-availability><state></state></high-availability></show>&target=" + dev.ser_num + "&key=" + key
+    check_resp = requests.get(check_str, verify=False)
+    check_respXML = et.fromstring(check_resp.content)
+    if check_resp.status_code != 200:
+        err_msg = check_respXML.find('./result/msg').text
+        print "Error: code %i, %s" % (check_resp.status_code, err_msg)
+    state = check_respXML.find('./result/group/local-info/state').text
+    return state
 
 
+
+def devUpgrade(dev, version, ip, key):
+    """Upgrades specified device to the specified version"""
+    v_file ="PanOS_" + dev.family + "-" + version
+    inst_str = "https://" + ip + "/api/?type=op&cmd=<request><batch><software><install><file>" + v_file + "</file><devices>" + dev.ser_num + "</devices></install></software></batch></request>&key=" + key
+    inst_resp = requests.get(inst_str, verify=False)
+    inst_respXML = et.fromstring(inst_resp.content)
+    if inst_resp.status_code != 200:
+        err_msg = inst_respXML.find('./result/msg').text
+        print "Error: code %i, %s" % (inst_resp.status_code, err_msg)
+    jobID =inst_respXML.find('./result/job').text
+    result = jobChecker(ip, jobID, key)
+    if result == 1:
+        print "There was an issue with installation job# %s on %s." %(jobID, dev.hostname)
+        return 1
+    else:
+        print "Installation of %s on %s successfull." % (version, dev.hostname)
+        return 0
 

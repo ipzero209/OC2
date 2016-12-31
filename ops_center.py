@@ -12,6 +12,17 @@ import ops_functions as ops
 
 
 
+# Set up logging
+logger = logging.getLogger("main")
+logger.setLevel(logging.DEBUG)
+fh = logging.FileHandler("ops_center.log")
+formatter = logging.Formater('%(asctime)s %(name)s\t\t%(levelname)s:\t\t\t\t%(message)s')
+fh.setFormatter(formatter)
+logger.addHandler(fh)
+
+
+
+
 
 
 ###################################################################################
@@ -54,21 +65,43 @@ def opsMenu(dev_list):
         menu_option = True
     elif menu_option == "5":
         dl_version = raw_input('What version of PAN-OS would you lime to Download (e.g. 7.1.4 or press I for more info): ')
-        dev = raw_input('Which device would you like to download to (enter hostname)? ')
-        downloadPANOS(ip, dev_host, dev_list, dl_version, api_key)
+        dev_host = raw_input('Which device would you like to download to (enter hostname)? ')
+        ops.downloadPANOS(pano_IP, dev_host, dev_list, dl_version, api_key)
+        print "%s downloaded on %s (and it's peer if in HA)" % (dl_version, dev)
+        ops.clearScreen()
+        menu_option = True
+    elif menu_optio == "6":
+        print "Please ensure that the device has the latest version of content installed."
+        up_ver = raw_input('What version of PAN-OS would you like to install? Note that the script handles multiple versions (e.g. from 6.0.5 to 7.1.4):')
+        dev_host = raw_input('Which device would you like to upgrade (enter hostname)? ')
+        for device in dev_list:
+            if device.hostname == dev_host:
+                dev1 = device
+                if dev1.is_ha == 'yes':
+                    for device in dev_list:
+                        if device.mgmt_ip == dev1.ha_peer:
+                            dev2 = device
+                    confirm = raw_input('%s is in HA with %s. Would you like to upgrade both? (Y/n) ' % (dev1.hostname, dev2.hostname))
+                    if confirm == 'Y' or 'y' or '':
+                        ops.haUpgrade(dev1, dev2, , version, pano_IP, api_key) # TODO - write ops ha upgrade function.
+                    else:
+                        conf_single = raw_input('Are you sure that you want to only upgrade one device in the HA pair? (y/N) ')
+                        if conf_single == 'y' or 'Y':
+                            ops.devUpgrade(dev1, version, pano_IP, api_key) # TODO - write ops single device upgrade function.
+                        else:
+                            print "Cancelling operation."
+                            break
+                else:
+                    confirm = raw_input('This operation will upgrade %s to PAN-OS version %s. Do you want to contine? (Y/n) ')
+                    if confirm == 'n' or 'N':
+                        break
+                    elif confirm == 'y' or 'Y' or '':
+                        ops.devUpgrade(dev1, version, pano_IP, api_key)
 
 
 
 
 
-
-# Set up logging
-logger = logging.getLogger("main")
-logger.setLevel(logging.DEBUG)
-fh = logging.FileHandler("ops_center.log")
-formatter = logging.Formater('%(asctime)s %(name)s\t\t%(levelname)s:\t\t\t\t%(message)s')
-fh.setFormatter(formatter)
-logger.addHandler(fh)
 
 
 
